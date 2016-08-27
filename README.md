@@ -1,2 +1,3 @@
 # twitter_langid
-A hierarchical character-Word neural network for language identification
+For more information please see our paper 
+[Hierarchical Character-Word Models for Language Identification](https://arxiv.org/abs/1608.03030).
