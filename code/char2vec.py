@@ -5,10 +5,7 @@ CharCNN implementations of char2vec.
 """
 import numpy as np
 import tensorflow as tf
-from tensorflow.models.rnn import rnn
-from tensorflow.models.rnn.rnn_cell import LSTMCell
 import util
-
 
 initializer = tf.random_uniform_initializer(-0.1, 0.1)
 
@@ -114,17 +111,17 @@ class Char2Vec(object):
 
 
 class CharLSTM(Char2Vec):
-    """ LSTM implementation of char2vec.
+  """ LSTM implementation of char2vec.
 
-    The model is a two layer deep bi-LSTM. Dropout is used
-    as a regularizer on the 2nd layer. The output word embeddings
-    are available in the c2v.word_embeddings variable.
-
-    The required placeholders are words_as_chars and seq_lens, which
-    contain the words in the form of padded character sequences and
-    the length of each word respectively. The batch_dim placeholder
-    must be supplied.
-    """
+  The model is a two layer deep bi-LSTM. Dropout is used
+  as a regularizer on the 2nd layer. The output word embeddings
+  are available in the c2v.word_embeddings variable.
+  
+  The required placeholders are words_as_chars and seq_lens, which
+  contain the words in the form of padded character sequences and
+  the length of each word respectively. The batch_dim placeholder
+  must be supplied.
+  """
 
   def __init__(self, char_vocab, model_params,
                max_sequence_len=15, dropout_keep_prob=None):
@@ -152,20 +149,18 @@ class CharLSTM(Char2Vec):
                                        [self._vocab_size, char_embed_dims],
                                        initializer=initializer)
 
-      def GetCell(hidden_size, input_size, num_proj=None, use_peepholes=False):
+      def GetCell(hidden_size, num_proj=None, use_peepholes=False):
         """Helper function to make LSTM cells."""
-        layer = LSTMCell(hidden_size, input_size, num_proj=num_proj,
+        layer = LSTMCell(hidden_size, num_proj=num_proj,
                          use_peepholes=use_peepholes)
-        layer = rnn.rnn_cell.DropoutWrapper(layer,
+        layer = tf.nn.rnn.rnn_cell.DropoutWrapper(layer,
           output_keep_prob=dropout_keep_prob,
           input_keep_prob=dropout_keep_prob)
         return layer
 
       # This is the 1st bi-LSTM layer.
-      layer1_fw = GetCell(layer1_hidden_size, char_embed_dims,
-                          layer1_out_size, model_params['peepholes'])
-      layer1_bw = GetCell(layer1_hidden_size, char_embed_dims,
-                          layer1_out_size, model_params['peepholes'])
+      layer1_fw = GetCell(layer1_hidden_size, layer1_out_size, model_params['peepholes'])
+      layer1_bw = GetCell(layer1_hidden_size, layer1_out_size, model_params['peepholes'])
 
       # This is the 2nd layer, also a bi-LSTM. The input size is twice
       # the size of the output size from layer one because the concatenation
@@ -175,10 +170,8 @@ class CharLSTM(Char2Vec):
       else:
         layer2_input_size = 2 * layer1_hidden_size
 
-      layer2_fw = LSTMCell(self.hidden_size, layer2_input_size,
-                           use_peepholes=model_params['peepholes'])
-      layer2_bw = LSTMCell(self.hidden_size, layer2_input_size,
-                           use_peepholes=model_params['peepholes'])
+      layer2_fw = LSTMCell(self.hidden_size, use_peepholes=model_params['peepholes'])
+      layer2_bw = LSTMCell(self.hidden_size, use_peepholes=model_params['peepholes'])
 
       # The final embeddings is the output from the layer2 LSTM multiplied
       # by this matrix. One purpose of this matrix is to scale the layer2
@@ -201,9 +194,9 @@ class CharLSTM(Char2Vec):
 
       # Feed the inputs through a bidirectional LSTM. Output is a list of
       # word_len tensors with dim batch_sz x 2 * hidden_sz.
-      out1, _, _ = rnn.bidirectional_rnn(layer1_fw, layer1_bw, inputs,
-                                         dtype=tf.float32,
-                                         sequence_length=self.seq_lens)
+      out1, _, _ = tf.nn.rnn.bidirectional_rnn(layer1_fw, layer1_bw, inputs,
+                                               dtype=tf.float32,
+                                               sequence_length=self.seq_lens)
 
       # For the 2nd bi-LSTM layer we won't use the bidirectional_rnn
       # wrapper. This is because we only want to save the last output
@@ -215,12 +208,12 @@ class CharLSTM(Char2Vec):
       # outputs are for each word in the minibatch.
       slices = self.batch_dim * tf.to_int32(self.seq_lens-1) + batch_range
       with tf.variable_scope('fw'):
-        outputs_forward, _ = rnn.rnn(layer2_fw, out1, dtype=tf.float32)
+        outputs_forward, _ = tf.nn.rnn.rnn(layer2_fw, out1, dtype=tf.float32)
         out_forward = self._GetLastOutput(outputs_forward, slices)
       with tf.variable_scope('bw'):
         # Reverse the sequences before processing with the backwards LSTM.
         out1_bw = reverse_seq(out1, self.seq_lens)
-        outputs_backward, _ = rnn.rnn(layer2_bw, out1_bw, dtype=tf.float32)
+        outputs_backward, _ = tf.nn.rnn.rnn(layer2_bw, out1_bw, dtype=tf.float32)
         out_backward = self._GetLastOutput(outputs_backward, slices)
 
     # This is the concatenation of the output from the two directions.
@@ -247,7 +240,7 @@ class CharCNN(Char2Vec):
                max_sequence_len=15, dropout_keep_prob=None):
     super(CharCNN, self).__init__(char_vocab, max_sequence_len)
 
-    char_embed_dims = np.log(len(char_vocab))
+    char_embed_dims = int(np.log(len(char_vocab))) + 1
 
     layer1_out_size = model_params['c2v_layer1_out_size']
     hidden_size = model_params['c2v_layer2_hidden_size']

@@ -14,7 +14,7 @@ np.random.seed(666)
 
 def LoadData(filename, mode='train', model='tweet'):
   """Load data stored in tweetlid format.
-  (i.e. tab-separated tweetid, username, language, tweet)
+  (i.e. tab-separated tweetid, language, tweet)
 
   Partitioning between train/dev/eval is done by the last digit of the
   id number for each training example. Digits 2 through 9 are used for
@@ -36,7 +36,7 @@ def LoadData(filename, mode='train', model='tweet'):
   ids, labels, sentences = [], [], []
   with gzip.open(filename, 'r') as f:
     for line in f:
-      tweetid, username, lang, tweet = line.split('\t')
+      tweetid, lang, tweet = line.split('\t')
 
       idx = int(tweetid) % 10  # use this to partition data
       if mode == 'train' and idx < 2:

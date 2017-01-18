@@ -1,7 +1,4 @@
-import code
 import tensorflow as tf
-from tensorflow.models.rnn import rnn
-from tensorflow.models.rnn.rnn_cell import LSTMCell
 import numpy as np
 
 
@@ -185,11 +182,11 @@ class TweetSeqModel(BaseModel): #formerly SeqModel
 
     def GetCell():
       """Creates an LSTM cell with dropout."""
-      c = LSTMCell(hidden_size, c2v.embedding_dims,
-                   use_peepholes=model_params['peepholes'],
-                   num_proj=proj_size)
+      c = tf.nn.rnn_cell.LSTMCell(hidden_size, c2v.embedding_dims,
+                                  use_peepholes=model_params['peepholes'],
+                                  num_proj=proj_size)
       if dropout_keep_prob is not None:
-        c = rnn.rnn_cell.DropoutWrapper(c, input_keep_prob=dropout_keep_prob)
+        c = tf.nn.rnn_cell.DropoutWrapper(c, input_keep_prob=dropout_keep_prob)
       return c
 
     # Create the bi-directional LSTM
@@ -199,9 +196,9 @@ class TweetSeqModel(BaseModel): #formerly SeqModel
       with tf.variable_scope('bw'):
         cell_bw = GetCell()
 
-      rnnout, _, _ = rnn.bidirectional_rnn(cell_fw, cell_bw, self._inputs,
-                                           dtype=tf.float32,
-                                           sequence_length=self.seq_lens)
+      rnnout, _, _ = tf.nn.bidirectional_rnn(cell_fw, cell_bw, self._inputs,
+                                             dtype=tf.float32,
+                                             sequence_length=self.seq_lens)
       if proj_size:
         out_size = 2 * proj_size
       else:
@@ -320,11 +317,11 @@ class WordLevelModel(object):
 
     def GetCell():
       """Creates an LSTM cell with dropout."""
-      c = LSTMCell(hidden_size, c2v.embedding_dims,
-                   use_peepholes=model_params['peepholes'],
-                   num_proj=proj_size)
+      c = tf.nn.rnn_cell.LSTMCell(hidden_size, c2v.embedding_dims,
+                                  use_peepholes=model_params['peepholes'],
+                                  num_proj=proj_size)
       if dropout_keep_prob is not None:
-        c = rnn.rnn_cell.DropoutWrapper(c, input_keep_prob=dropout_keep_prob)
+        c = tf.nn.rnn_cell.DropoutWrapper(c, input_keep_prob=dropout_keep_prob)
       return c
 
     # Create the bi-directional LSTM
@@ -334,9 +331,9 @@ class WordLevelModel(object):
       with tf.variable_scope('bw'):
         cell_bw = GetCell()
 
-      rnnout, _, _ = rnn.bidirectional_rnn(cell_fw, cell_bw, self._inputs,
-                                           dtype=tf.float32,
-                                           sequence_length=self.seq_lens)
+      rnnout, _, _ = tf.nn.bidirectional_rnn(cell_fw, cell_bw, self._inputs,
+                                             dtype=tf.float32,
+                                             sequence_length=self.seq_lens)
       if proj_size:
         out_size = 2 * proj_size
       else:

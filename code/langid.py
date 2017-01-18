@@ -13,7 +13,7 @@ import tensorflow as tf
 import util
 
 from char2vec import CharCNN as Char2Vec
-from batcher import Dataset, CodeswitchingDataset
+from batcher import Dataset
 from vocab import Vocab
 from models import WordSeqModel, CharSeqModel, TweetSeqModel, WordLevelModel
 
@@ -129,7 +129,7 @@ dataset.Prepare(input_vocab, output_vocab, und_symbol, ignore_categories)
 max_word_len = max([len(x) for x in input_vocab.GetWords()]) + 2
 print 'max word len {0}'.format(max_word_len)
 
-dropout_keep_prob = tf.constant(1.0, name='keep_prob')
+dropout_keep_prob = tf.placeholder_with_default(1.0, (), name='keep_prob')
 if baseline:
   c2v = BasicEmbedding(model_params, vocab_size=len(input_vocab))
 else:                    
