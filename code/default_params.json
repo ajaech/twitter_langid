@@ -1,0 +1,14 @@
+{"word_embed_dims":80,
+ "char_embed_dims": 15,
+ "c2v_layer1_hidden_size": 60,
+ "c2v_layer1_out_size": 60,
+ "c2v_layer2_hidden_size": 70,
+ "model_hidden_size": 40,
+ "model_proj_size": null,
+ "peepholes": false,
+ "dropout_keep_prob": 0.7,
+ "wiki_hidden_size": 60,
+ "tweet_hidden_size": 40,
+ "shared_hidden_size": 50,
+ "num_training_iters": 3001}
+
