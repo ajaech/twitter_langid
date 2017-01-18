@@ -23,7 +23,7 @@ parser.add_argument('expdir')
 parser.add_argument('--start', help='init parameters from saved model')
 parser.add_argument('--mode', choices=['train', 'debug', 'eval', 'final',
                                        'apply'], default='train')
-parser.add_argument('--data', default='twitter')
+parser.add_argument('--data', default='../data/smallwiki.tsv.gz')
 parser.add_argument('--params', default='default_params.json', 
                     help='load hyperparams from json file')
 parser.add_argument('--model', choices=['word', 'char', 'tweet'],
@@ -49,24 +49,7 @@ batch_size = 25
 dataset = Dataset(batch_size, preshuffle=mode=='train')
 und_symbol='und'
 
-if os.path.isfile(args.data):
-  dataset.ReadData(args.data, 'all', args.model)
-elif args.data == 'wiki':
-  dataset.ReadData('../data/wiki/lang34.tsv.gz', mode, args.model, weight=0.02)
-  dataset.ReadData('../data/twitter/tweets_clean.tsv.gz', mode, args.model)
-elif args.data == 'twitter':
-  dataset.ReadData('../data/twitter/tweets_clean.tsv.gz', mode, args.model)
-elif args.data == 'tweetlid':
-  if mode != 'eval':
-    dataset.ReadData('../data/tweetlid/training.tsv.gz', 'all', args.model)
-  else:
-    dataset.ReadData('../data/tweetlid/testing.tsv.gz', 'all', args.model)
-elif args.data == 'combo':
-  dataset.ReadData('../data/tweetlid/training.tsv.gz', 'all', args.model)
-  dataset.ReadData('../data/tweetlid/extra.tsv.gz', 'all', args.model,
-                   weight=0.25)
-  dataset.ReadData('../data/wiki/iberian.tsv.gz', 'all', args.model,
-                   weight=0.1)
+dataset.ReadData(args.data, mode, args.model)
 
 # Make the input vocabulary (words that appear in data)
 if baseline:
@@ -277,18 +260,8 @@ def Debug(expdir):
                 for i in xrange(len(output_vocab))]
   util.PlotText(c, lang_names) 
 
-  # plot character embeddings
-  char_embeddings = c2v.embedding.eval(session)
-  c = util.GetProj(char_embeddings)
-  util.PlotText(c, char_vocab)
-
   # plot some word embeddings 
-  batch_data = {
-    c2v.batch_dim: len(the_words),
-    c2v.seq_lens: word_lengths,
-    c2v.words_as_chars: the_words,
-  }
-
+  batch_data = {c2v.words_as_chars: the_words}
   word_embeddings = session.run([c2v.word_embeddings], batch_data)[0]
   c = util.GetProj(word_embeddings)
   util.PlotText(c, input_vocab)

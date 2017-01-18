@@ -182,7 +182,7 @@ class TweetSeqModel(BaseModel): #formerly SeqModel
 
     def GetCell():
       """Creates an LSTM cell with dropout."""
-      c = tf.nn.rnn_cell.LSTMCell(hidden_size, c2v.embedding_dims,
+      c = tf.nn.rnn_cell.LSTMCell(hidden_size,
                                   use_peepholes=model_params['peepholes'],
                                   num_proj=proj_size)
       if dropout_keep_prob is not None:
@@ -317,7 +317,7 @@ class WordLevelModel(object):
 
     def GetCell():
       """Creates an LSTM cell with dropout."""
-      c = tf.nn.rnn_cell.LSTMCell(hidden_size, c2v.embedding_dims,
+      c = tf.nn.rnn_cell.LSTMCell(hidden_size,
                                   use_peepholes=model_params['peepholes'],
                                   num_proj=proj_size)
       if dropout_keep_prob is not None:
